@@ -12,7 +12,7 @@ public class Color {
 		 colorSample = new float[colorSensor.sampleSize()]; 
 	}
 	
-	public float brightness() {
+	public float getbrightness() {
 		
 		colorSensor.fetchSample(colorSample, 0);
 		return colorSample[0];

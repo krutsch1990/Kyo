@@ -13,20 +13,21 @@ public class Start {
 
 		// Aus der Klasse Color wird ein Objekt namens Color erzeugt.
 		Color color = new Color();
-
+		Distance distance = new Distance();
+		
 		// Start des Programms, es wird mit color.brightness jeweils die Helligkeit vom
 		// Tisch
 		// und von der Linie gemessen und in einen float abgespeichert
 		Sound.beepSequence();
 		System.out.println("Press any button");
 		Button.waitForAnyPress();
-		float tisch = color.brightness();
+		float tisch = color.getbrightness();
 		Sound.beepSequence();
 		Button.waitForAnyPress();
-		float linie = color.brightness();
+		float linie = color.getbrightness();
 		Sound.beepSequence();
 
-		int speed_max = 25;
+		
 		float mid = (tisch + linie) / 2;
 
 		System.out.println(tisch);
@@ -36,6 +37,10 @@ public class Start {
 		Button.waitForAnyPress();
 		System.out.println("i am driving");
 
+		int speed_max = 25;
+		int max_distance = 100;
+		
+		
 		int error_count = 0;
 		float error_sum = 0;
 		float error_average = 1;
@@ -43,6 +48,17 @@ public class Start {
 		int speed_int_left;
 
 		while (Button.ESCAPE.isUp()) {
+			
+			float spacing = distance.getdistance();
+			
+			if (spacing < (max_distance * 0.3) ){
+				speed_max= speed_max * 0;
+			} else if ( spacing < max_distance ) {
+				float anteil = (spacing/max_distance) * speed_max;
+				speed_max = (int) anteil;
+			}
+			
+			
 
 			// reset bei 10000 Messungen
 			if (error_count > 10000) {
@@ -50,7 +66,7 @@ public class Start {
 				error_sum = 0;
 			}
 
-			float actually = color.brightness();
+			float actually = color.getbrightness();
 
 			if (actually < mid) {
 
