@@ -7,16 +7,19 @@ public class Distance {
 	
 	public Distance(){
 		
-		distanceSensor = new EV3UltrasonicSensor(SensorPort.S1);
+		distanceSensor = new EV3UltrasonicSensor(SensorPort.S4);
 		distanceSensor.enable();
 		distanceSample = new float[distanceSensor.sampleSize()];
 	}
 	
 	public float getdistance() {
 		
-		distanceSensor.fetchSample(distanceSample, 0); 
+		distanceSensor.getDistanceMode();		
+		distanceSensor.fetchSample(distanceSample, 0 ); 
 		return distanceSample[0];
 		
 	}
+	
+	
 	
 }

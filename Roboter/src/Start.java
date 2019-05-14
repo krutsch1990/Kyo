@@ -4,121 +4,113 @@ import lejos.hardware.motor.UnregulatedMotor;
 import lejos.hardware.port.MotorPort;
 
 public class Start {
-
+	
+	// RemoteEv3 ev3 = new RemoteEv3("192.168.0.223");
+	// ev3.seDefault();
+	// RemoteEv3 importieren
+	
 	static UnregulatedMotor motorB = new UnregulatedMotor(MotorPort.B);
 	static UnregulatedMotor motorC = new UnregulatedMotor(MotorPort.C);
-	// static TouchSensor touch= new TouchSensor(SensorPort.S1);
 
 	public static void main(String[] args) {
 
-		// Aus der Klasse Color wird ein Objekt namens Color erzeugt.
 		Color color = new Color();
 		Distance distance = new Distance();
-		
-		// Start des Programms, es wird mit color.brightness jeweils die Helligkeit vom
-		// Tisch
-		// und von der Linie gemessen und in einen float abgespeichert
+
 		Sound.beepSequence();
 		System.out.println("Press any button");
 		Button.waitForAnyPress();
-		float tisch = color.getbrightness();
+		float black = color.getbrightness();
 		Sound.beepSequence();
 		Button.waitForAnyPress();
-		float linie = color.getbrightness();
+		float table = color.getbrightness();
 		Sound.beepSequence();
-
 		
-		float mid = (tisch + linie) / 2;
-
-		System.out.println(tisch);
-		System.out.println(linie);
-		System.out.println(mid);
-
+		float grey = (black+table) / 2;
+		
 		Button.waitForAnyPress();
-		System.out.println("i am driving");
+		System.out.println("i hate my life");
 
-		int speed_max = 25;
-		int max_distance = 100;
+		float[] error_list = new float [8];
+	
+		float now; 
+		int count =0;
+		
+		float summe=0;
+		float differenz=0;
+		float error=0;
+		
+		double k_p = 100;
+		double k_i = 0;
+		double k_d = 0;
+	
+		int v_schnitt = 35;
+		
+		int min_speed=-30;
+		int max_speed=35;
 		
 		
-		int error_count = 0;
-		float error_sum = 0;
-		float error_average = 1;
-		int speed_int_right;
-		int speed_int_left;
-
+		now = color.getbrightness();
+		float lasterror = now - grey;
+		
 		while (Button.ESCAPE.isUp()) {
+			++count;
+		
+			now = color.getbrightness();
 			
-			float spacing = distance.getdistance();
+			motorB.forward();
+			motorC.forward();
 			
-			if (spacing < (max_distance * 0.3) ){
-				speed_max= speed_max * 0;
-			} else if ( spacing < max_distance ) {
-				float anteil = (spacing/max_distance) * speed_max;
-				speed_max = (int) anteil;
+			
+			// PID
+			
+			//P
+			
+			error = now - grey;
+			error_list[count%error_list.length]= error;
+			
+			
+			//
+			summe=0;
+			for (int i=0; i<error_list.length;++i) {
+				summe+=error_list[i];
+				
+				
+				//TEST2 
+			//D
+			differenz = error - lasterror;
+				
+				
+			//
+			double regler = k_p * error + k_i * summe + k_d * differenz;
+			System.out.println(regler);
+			int links = (int) ((regler) + v_schnitt);
+			int rechts = (int) ( -1 * (regler) + v_schnitt);
+			
+			
+			if (links < min_speed) {
+				links =min_speed;
+			}
+			if (links > max_speed) {
+				links = max_speed;
+			}
+			if (rechts < min_speed) {
+				rechts =min_speed;
+			}
+			if (rechts > max_speed) {
+				rechts = max_speed;
 			}
 			
+			motorB.setPower(links);
+			motorC.setPower(rechts);
 			
-
-			// reset bei 10000 Messungen
-			if (error_count > 10000) {
-				error_count = 0;
-				error_sum = 0;
-			}
-
-			float actually = color.getbrightness();
-
-			if (actually < mid) {
-
-				float basis = linie;
-				float max_error = mid - linie;
-				float faktor = (actually - basis) / max_error;
-				float error = (max_error - (actually - max_error)) / max_error;
-
-				error_average = error_sum / error_count;
-
-				float error_check = error / error_average;
-
-				if (error_check > 2) {
-					speed_int_right = -10;
-				} else {
-					++error_count;
-					error_sum += error;
-					float speed = faktor * speed_max;
-					speed_int_right = (int) speed;
-				}
-				motorB.setPower(speed_max);
-				motorC.setPower(speed_int_right);
-
-			} else if (actually > mid) {
-
-				float basis = mid;
-				float max_error = tisch - mid;
-				float faktor = (actually - basis) / max_error;
-				float error = 1 - ((max_error - (actually - max_error)) / max_error);
-
-				error_average = error_sum / error_count;
-
-				float error_check = error / error_average;
-
-				if (error_check > 2) {
-					speed_int_left = -10;
-				} else {
-					++error_count;
-					error_sum += error;
-					float speed = speed_max - (faktor * speed_max);
-					speed_int_left = (int) speed;
-				}
-
-				motorC.setPower(speed_max);
-				motorB.setPower(speed_int_left);
-
-			} else {
-				motorC.setPower(speed_max);
-				motorB.setPower(speed_max);
+			
+			lasterror= error;
+			
+			
 			}
 		}
-
+		
 		motorB.stop();
 		motorC.stop();
 		Sound.beepSequence();
