@@ -1,3 +1,4 @@
+import lejos.hard.
 
 public class Test {
 
