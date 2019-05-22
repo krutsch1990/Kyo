@@ -29,18 +29,20 @@ public class start_test {
 
 		Button.waitForAnyPress();
 
-		int speed_max = 25;
+		int speed_max = 40;
 
 		int speed_int_right;
 		int speed_int_left;
-		int max_reverse=-30;
-		int reverse_value=0;
-		float last_error=0;
-		int mult_regler=3;
-		
+		int max_reverse = -40;
+
+		float last_error = 0;
+		float mult_regler = 4f;
+		float last_error_diff_linie=0;
+		float last_error_diff_tisch=0;
 		
 		while (Button.ESCAPE.isUp()) {
-
+			System.out.println(last_error);
+			int reverse_value = 0;
 			float actually = color.getbrightness();
 
 			if (actually < mid) {
@@ -48,47 +50,68 @@ public class start_test {
 				float basis = linie;
 				float max_error = mid - linie;
 				float faktor = (actually - basis) / max_error;
-				float error = (max_error - (actually - max_error)) / max_error;
-				
-				float error_diff=error-last_error;
-				if (error_diff > 0) {
-					reverse_value= (int) (error * 10) * mult_regler;
-					
+				float error = (max_error - (actually - linie)) / max_error;
+
+				float error_diff = error - last_error;
+				if (error_diff > 0.4) {
+					float revers_calc = (error_diff * 10) * mult_regler;
+					reverse_value = (int) revers_calc;
 				}
+
 				
 				float speed = faktor * speed_max;
 				speed_int_right = (int) speed;
 
 				motorB.setPower(speed_max);
-				
-				if ( speed_int_right < max_reverse) {
-					motorC.setPower( max_reverse);
-				}else {
-					motorC.setPower(speed_int_right - reverse_value  );
+
+				if ( (speed_int_right-reverse_value) < max_reverse) {
+					motorC.setPower(max_reverse);
+				} else {
+					motorC.setPower(speed_int_right - reverse_value);
 				}
+				
+				
+				
+				if ( error_diff < last_error_diff_linie) {
+					last_error=error;
+				}
+				
+				last_error_diff_linie=error_diff;
+				
+				
+				
+			
 			} else if (actually > mid) {
 
 				float basis = mid;
 				float max_error = tisch - mid;
 				float faktor = (actually - basis) / max_error;
-				float error = 1 - ((max_error - (actually - max_error)) / max_error);
-				
-				float error_diff=error-last_error;
-				if (error_diff > 0) {
-					reverse_value= (int) (error * 10) * mult_regler;
+				float error = 1 - ((max_error - (actually - mid)) / max_error);
+
+				float error_diff = error - last_error;
+				if (error_diff > 0.4) {
+					float revers_calc = (error_diff * 10) * mult_regler;
+					reverse_value = (int) revers_calc;
 				}
 
 				float speed = speed_max - (faktor * speed_max);
 				speed_int_left = (int) speed;
 
 				motorC.setPower(speed_max);
-				
-				if (speed_int_left < max_reverse) {
+
+				if ((speed_int_left-reverse_value) < max_reverse) {
 					motorB.setPower(max_reverse);
 				}
 				motorB.setPower(speed_int_left - reverse_value);
 				
-
+				
+				if ( error_diff < last_error_diff_tisch) {
+					last_error=error;
+				}
+				
+				
+				last_error_diff_tisch=error_diff;
+				
 			} else {
 				motorC.setPower(speed_max);
 				motorB.setPower(speed_max);
