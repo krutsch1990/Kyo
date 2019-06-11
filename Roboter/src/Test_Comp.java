@@ -10,14 +10,9 @@ public class Test_Comp {
 
 		
 		drive(tisch,linie,mid,0.4f);
-		drive(tisch,linie,mid,0.45f);
-		drive(tisch,linie,mid,0.48f);
-		drive(tisch,linie,mid,0.5f);
-		drive(tisch,linie,mid,0.3f);
-		drive(tisch,linie,mid,0.2f);
-		drive(tisch,linie,mid,0.4f);
-		drive(tisch,linie,mid,0.69f);
-		drive(tisch,linie,mid,0.12f);
+		drive(tisch,linie,mid,0.35f);
+		drive(tisch,linie,mid,0.6f);
+	
 	}
 
 	public static float get_error(float tisch, float linie, float mid, float actually) {

@@ -3,16 +3,17 @@ import lejos.hardware.Sound;
 import lejos.hardware.motor.UnregulatedMotor;
 import lejos.hardware.port.MotorPort;
 
-public class Start_Test2 {
+public class Ausweichen {
 
 	static UnregulatedMotor motorB = new UnregulatedMotor(MotorPort.B);
 	static UnregulatedMotor motorC = new UnregulatedMotor(MotorPort.C);
+	static Distance distance = new Distance();
 	static float last_error = 0;
 
 	public static void main(String[] args) {
 
 		Color color = new Color();
-		Distance distance = new Distance();
+		
 		
 		System.out.println("Press any Button");
 		Sound.beepSequence();
@@ -33,15 +34,9 @@ public class Start_Test2 {
 
 		while (Button.ESCAPE.isUp()) {
 
-			float abstand=distance.getdistance();
 			
-			if ( abstand > 0.15f) {
 			float actually = color.getbrightness();
 			drive(tisch, linie, mid, actually);
-			}else {
-				motorC.setPower(0);
-				motorB.setPower(0);
-			}
 		}
 
 		motorB.stop();
@@ -68,7 +63,15 @@ public class Start_Test2 {
 
 		float basis;
 		float max_error;
-		int speed_max = 40;
+		
+		
+		float speed_max = 35;
+		
+		float abstand=distance.getdistance();
+		
+		if ( abstand < 0.3f) {
+		//hier kann was tolles passieren
+		}
 
 		if (actually <= mid) {
 			basis = linie;
@@ -83,12 +86,14 @@ public class Start_Test2 {
 		if (actually > mid) {
 			speed = speed_max - speed;
 			int int_speed = (int) speed - (int) reverse_value;
-			motorC.setPower(speed_max);
+		
+			motorC.setPower((int)speed_max);
 			motorB.setPower(int_speed);
 		} else {
 			int int_speed = (int) speed - (int) reverse_value;
+			
 			motorC.setPower(int_speed);
-			motorB.setPower(speed_max);
+			motorB.setPower((int)speed_max);
 		}
 	}
 
@@ -114,3 +119,4 @@ public class Start_Test2 {
 	}
 
 }
+
