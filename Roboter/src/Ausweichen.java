@@ -2,19 +2,21 @@ import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.motor.UnregulatedMotor;
 import lejos.hardware.port.MotorPort;
+import lejos.utility.Delay;
 
 public class Ausweichen {
 
 	static UnregulatedMotor motorB = new UnregulatedMotor(MotorPort.B);
 	static UnregulatedMotor motorC = new UnregulatedMotor(MotorPort.C);
 	static Distance distance = new Distance();
+	static Gyro gyro = new Gyro();
 	static float last_error = 0;
-
+	static Color color = new Color();
+	
 	public static void main(String[] args) {
 
-		Color color = new Color();
 		
-		
+
 		System.out.println("Press any Button");
 		Sound.beepSequence();
 		Button.waitForAnyPress();
@@ -34,7 +36,6 @@ public class Ausweichen {
 
 		while (Button.ESCAPE.isUp()) {
 
-			
 			float actually = color.getbrightness();
 			drive(tisch, linie, mid, actually);
 		}
@@ -63,14 +64,15 @@ public class Ausweichen {
 
 		float basis;
 		float max_error;
-		
-		
+
 		float speed_max = 35;
-		
-		float abstand=distance.getdistance();
-		
-		if ( abstand < 0.3f) {
-		//hier kann was tolles passieren
+
+		float abstand = distance.getdistance();
+
+		if (abstand < 0.3f) {
+
+			ausweichen(mid);
+
 		}
 
 		if (actually <= mid) {
@@ -86,14 +88,14 @@ public class Ausweichen {
 		if (actually > mid) {
 			speed = speed_max - speed;
 			int int_speed = (int) speed - (int) reverse_value;
-		
-			motorC.setPower((int)speed_max);
+
+			motorC.setPower((int) speed_max);
 			motorB.setPower(int_speed);
 		} else {
 			int int_speed = (int) speed - (int) reverse_value;
-			
+
 			motorC.setPower(int_speed);
-			motorB.setPower((int)speed_max);
+			motorB.setPower((int) speed_max);
 		}
 	}
 
@@ -118,5 +120,84 @@ public class Ausweichen {
 		return error;
 	}
 
-}
+	public static void ausweichen(float mid) {
 
+		turn_right(90);
+		move(2000);
+		turn_left(90);
+		move(4000);
+		check();
+		move(2000);
+		search(mid);
+
+	}
+
+	public static void turn_right(int grad) {
+		float actuell_pos = gyro.getgyro();
+		float last_pos = actuell_pos;
+		
+		
+		while (actuell_pos < (last_pos + grad)) {
+			motorC.setPower(-20);
+			motorB.setPower(20);
+		}
+	}
+
+	public static void turn_left(int grad) {
+		float actuell_pos = gyro.getgyro();
+		float last_pos = actuell_pos;
+		while (actuell_pos > (last_pos - grad)) {
+			motorC.setPower(20);
+			motorB.setPower(-20);
+		}
+	}
+
+	public static void move(int time) {
+
+		motorC.setPower(20);
+		motorB.setPower(20);
+		Delay.msDelay(time);
+		motorC.stop();
+		motorB.stop();
+	}
+
+	public static void check() {
+
+		for (int i = 1; i < 10; ++i) {
+
+			turn_left(10);
+			float abstand = distance.getdistance();
+
+			if (abstand < 0.6f) {
+				turn_right(i*10);
+				move(2000);
+				check();
+				break;
+				
+			}
+		}
+
+		
+
+	}
+
+	public static void search(float mid) {
+		
+		float actually = color.getbrightness();
+		int rotation=20;
+		
+		while(actually > mid) {
+			actually= color.getbrightness();
+			float actuell_pos = gyro.getgyro();
+			
+			if ( (actuell_pos % 90) == 0) {
+				rotation-=1;
+			}
+			
+			
+			motorC.setPower(rotation*(-1));
+			motorB.setPower(rotation);
+			
+		}
+	}
+}
