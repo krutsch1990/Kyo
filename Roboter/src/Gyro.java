@@ -1,5 +1,6 @@
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3GyroSensor;
+import lejos.utility.Delay;
 
 public class Gyro {
 	EV3GyroSensor gyroSensor;
@@ -18,5 +19,6 @@ public class Gyro {
 		gyroSensor.getAngleMode();
 		gyroSensor.fetchSample(gyroSample, 0);
 		return gyroSample[0];
+		
 	}
 }

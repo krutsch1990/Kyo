@@ -8,10 +8,8 @@ public class Test_Comp {
 		float linie = 0.11f;
 		float mid = (tisch + linie) / 2;
 
-		
-		drive(tisch,linie,mid,0.4f);
-		drive(tisch,linie,mid,0.35f);
-		drive(tisch,linie,mid,0.6f);
+		System.out.println(mid);
+		drive(tisch,linie,mid,0.23f);
 	
 	}
 

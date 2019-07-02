@@ -2,7 +2,6 @@ import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.motor.UnregulatedMotor;
 import lejos.hardware.port.MotorPort;
-import lejos.utility.Delay;
 
 public class Ausweichen {
 
@@ -12,10 +11,8 @@ public class Ausweichen {
 	static Gyro gyro = new Gyro();
 	static float last_error = 0;
 	static Color color = new Color();
-	
-	public static void main(String[] args) {
 
-		
+	public static void main(String[] args) {
 
 		System.out.println("Press any Button");
 		Sound.beepSequence();
@@ -65,14 +62,15 @@ public class Ausweichen {
 		float basis;
 		float max_error;
 
-		float speed_max = 35;
+		float speed_max = 30;
 
 		float abstand = distance.getdistance();
 
-		if (abstand < 0.3f) {
-
-			ausweichen(mid);
-
+		if (abstand < 0.1f) {
+			Sound.beepSequence();
+			float end = (mid + tisch) / 2;
+			ausweichen(end);
+			Sound.beepSequence();
 		}
 
 		if (actually <= mid) {
@@ -120,84 +118,109 @@ public class Ausweichen {
 		return error;
 	}
 
-	public static void ausweichen(float mid) {
+	public static void ausweichen(float end) {
 
-		turn_right(90);
-		move(2000);
-		turn_left(90);
-		move(4000);
-		check();
-		move(2000);
-		search(mid);
+		leave_line(90);
+		move(2000, end);
+
+		if (color.getbrightness() < end) {
+			return;
+		}
+		turn_left(82, end);
+		move(3000, end);
+
+		if (color.getbrightness() < end) {
+			return;
+		}
+		check(end);
+		search(end);
 
 	}
 
-	public static void turn_right(int grad) {
-		float actuell_pos = gyro.getgyro();
-		float last_pos = actuell_pos;
-		
-		
-		while (actuell_pos < (last_pos + grad)) {
-			motorC.setPower(-20);
-			motorB.setPower(20);
+	public static void leave_line(int grad) {
+		float last_pos = gyro.getgyro();
+
+		while (gyro.getgyro() > (last_pos - grad)) {
+			motorC.setPower(-25);
+			motorB.setPower(25);
 		}
 	}
 
-	public static void turn_left(int grad) {
-		float actuell_pos = gyro.getgyro();
-		float last_pos = actuell_pos;
-		while (actuell_pos > (last_pos - grad)) {
-			motorC.setPower(20);
-			motorB.setPower(-20);
+	public static void turn_right(int grad, float end) {
+		
+		
+		float last_pos = gyro.getgyro();
+
+		while (gyro.getgyro() > (last_pos - grad) && color.getbrightness() > end) {
+			motorC.setPower(-25);
+			motorB.setPower(25);
 		}
 	}
 
-	public static void move(int time) {
-
-		motorC.setPower(20);
-		motorB.setPower(20);
-		Delay.msDelay(time);
-		motorC.stop();
-		motorB.stop();
+	public static void turn_left(int grad, float end) {
+		
+		float last_pos = gyro.getgyro();
+		
+		while (gyro.getgyro() < (last_pos + grad) && color.getbrightness() > end) {
+			motorC.setPower(25);
+			motorB.setPower(-25);
+		}
 	}
 
-	public static void check() {
+	public static void move(int time, float end) {
+
+		final long endtime = System.currentTimeMillis() + time;
+
+
+		while (System.currentTimeMillis() < endtime && color.getbrightness() > end) {
+			motorC.setPower(30);
+			motorB.setPower(30);
+		}
+		motorC.setPower(0);
+		motorB.setPower(0);
+	}
+
+	public static void check(float end) {
 
 		for (int i = 1; i < 10; ++i) {
 
-			turn_left(10);
-			float abstand = distance.getdistance();
+			turn_left(10, end);
 
-			if (abstand < 0.6f) {
-				turn_right(i*10);
-				move(2000);
-				check();
+			if (color.getbrightness() < end) {
+				return;
+			}
+
+			if (distance.getdistance() < 0.2f) {
+				turn_right((i) * 10, end);
+				move(3000, end);
+				check(end);
 				break;
-				
+
 			}
 		}
 
-		
-
 	}
 
-	public static void search(float mid) {
-		
-		float actually = color.getbrightness();
-		int rotation=20;
-		
-		while(actually > mid) {
-			actually= color.getbrightness();
-			float actuell_pos = gyro.getgyro();
-			
-			if ( (actuell_pos % 90) == 0) {
-				rotation-=1;
+	public static void search(float end) {
+
+		int flex = 10;
+
+		while (color.getbrightness() > end && Button.ESCAPE.isUp()) {
+
+			long loopend = System.currentTimeMillis() + 2000;
+
+			while (System.currentTimeMillis() < loopend && color.getbrightness() > end) {
+
+				motorC.setPower(flex);
+				motorB.setPower(40);
+
 			}
-			
-			
-			motorC.setPower(rotation*(-1));
-			motorB.setPower(rotation);
-			
+			if (flex < 30) {
+				++flex;
+			}
+
 		}
+
 	}
+
 }
